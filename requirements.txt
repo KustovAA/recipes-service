@@ -2,7 +2,12 @@ asgiref==3.5.2
 dj-database-url==1.0.0
 Django==4.1.1
 django-heroku==0.3.1
+environs==9.5.0
 gunicorn==20.1.0
+marshmallow==3.18.0
+packaging==21.3
 psycopg2==2.9.3
+pyparsing==3.0.9
+python-dotenv==0.21.0
 sqlparse==0.4.2
 whitenoise==6.2.0
