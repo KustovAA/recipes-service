@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 
 import django_heroku
+import dj_database_url
 from environs import Env
 
 env = Env()
@@ -31,7 +32,12 @@ SECRET_KEY = 'django-insecure-=xv^%#j_ow%&z#9_8$(vv9#i%&75x+1ig@6is7%!mkwzj$u5ke
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG')
 
-ALLOWED_HOSTS = ['recipes-service-app.herokuapp.com/']
+ALLOWED_HOSTS = [
+    'recipes-service-app.herokuapp.com/',
+    '0.0.0.0',
+    'localhost',
+    '127.0.0.1'
+]
 
 
 # Application definition
@@ -81,10 +87,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(conn_max_age=600)
 }
 
 
