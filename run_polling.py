@@ -33,9 +33,12 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-AGREEMENT, NAME, PHONE_NUMBER, EMAIL = map(chr, range(4))
-NEXT = map(chr, range(4, 5))
-LIKE, DISLIKE = map(chr, range(5, 7))
+AGREEMENT = 1
+NAME = 2
+PHONE_NUMBER = 3
+EMAIL = 4
+NEXT = 5
+LIKE, DISLIKE = 6, 7
 END = ConversationHandler.END
 
 
@@ -89,19 +92,18 @@ def email(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     logger.info("Email of %s: %s", user.first_name, update.message.text)
     update.message.reply_text(
-        'Спасибо. Добро пожаловать в наше царство блюд=))'
+        'Спасибо. Добро пожаловать в наше царство блюд=)) /menu'
     )
     return ConversationHandler.END
 
 
-next_id = 1
-
-
 def menu(update: Update, context: CallbackContext) -> int:
-    global next_id
-    recipe = Recipe.objects.get(id=next_id)
-    next_id += 1
-    reply_keyboard = [['Покажи другой рецепт']]
+    context.bot_data['next_id'] = 1
+    user = update.message.from_user
+    logger.info("Reciept of %s: %s", user.first_name, update.message.text)
+    recipe = Recipe.objects.get(id=context.bot_data['next_id'])
+    context.bot_data['next_id'] += 1
+    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
     update.message.reply_photo(
         recipe.img,
         reply_markup=ReplyKeyboardMarkup(
@@ -115,44 +117,49 @@ def menu(update: Update, context: CallbackContext) -> int:
 
 
 def next_menu(update: Update, context: CallbackContext) -> int:
-    global next_id
-    user = update.message.from_user
-    reply_keyboard = [['Покажи другой рецепт'], ['Посмотреть ингридиенты'], ['Показать рецепт']]
-    logger.info("Reciept of %s: %s", user.first_name, update.message.text)
-    recipe = Recipe.objects.get(id=next_id)
-    next_id += 1
-    buttons = [
-        [
-            InlineKeyboardButton(text='Нравится', callback_data=LIKE),
-            InlineKeyboardButton(text='Не нравится', callback_data=DISLIKE),
+    try:
+        user = update.message.from_user
+        reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
+        logger.info("Reciept of %s: %s", user.first_name, update.message.text)
+        recipe = Recipe.objects.get(id=context.bot_data['next_id'])
+        keyboard = [
+            [
+                InlineKeyboardButton(text='Нравится', callback_data=LIKE)
+            ],
+            [
+                InlineKeyboardButton(text='Не нравится', callback_data=DISLIKE),
+            ]
         ]
-    ]
-    keyboard = InlineKeyboardMarkup(buttons)
-    update.message.reply_photo(
-        recipe.img,
-        reply_markup=ReplyKeyboardMarkup(
-            reply_keyboard, one_time_keyboard=True,
-            resize_keyboard=True,
-        ),
-    )
-    update.message.reply_text(
-        recipe.name,
-        reply_markup=InlineKeyboardMarkup(
-            keyboard, one_time_keyboard=True,
-            resize_keyboard=True,
+        context.bot_data['next_id'] += 1
+        update.message.reply_photo(
+            recipe.img,
+            reply_markup=ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard=True,
+                resize_keyboard=True,
+            ),
         )
-    )
-
-    return NEXT
+        update.message.reply_text(
+            recipe.name,
+            reply_markup=InlineKeyboardMarkup(
+                keyboard, one_time_keyboard=True,
+                resize_keyboard=True,
+            )
+        )
+        return NEXT
+    except Recipe.DoesNotExist:
+        update.message.reply_text(
+            'Блюд больше нет',
+        )
+        context.bot_data['next_id'] = 1
+        return ConversationHandler.END
 
 
 def send_recipe(update: Update, context: CallbackContext) -> int:
-    global next_id
     user = update.message.from_user
-    reply_keyboard = [['Покажи другой рецепт'], ['Посмотреть ингридиенты'], ['Вернуться назад']]
+    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
-    recipe = Recipe.objects.get(id=next_id)
-    next_id += 1
+    recipe = Recipe.objects.get(id=context.bot_data['next_id'])
+    context.bot_data['next_id'] += 1
     update.message.reply_text(
         recipe.description,
         reply_markup=ReplyKeyboardMarkup(
@@ -165,14 +172,18 @@ def send_recipe(update: Update, context: CallbackContext) -> int:
 
 
 def send_ingredients(update: Update, context: CallbackContext) -> int:
-    global next_id
     user = update.message.from_user
-    reply_keyboard = [['Покажи другой рецепт'], ['Показать рецепт'], ['Вернуться назад']]
+    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
-    recipe = IngredientAndRecipe.objects.get(id=next_id)
-    next_id += 1
+    recipe = Recipe.objects.get(id=context.bot_data['next_id'])
+    ingredient_and_recipe = IngredientAndRecipe.objects.filter(recipe=recipe.pk)
+    context.bot_data['next_id'] += 1
+    ingredient_message = ''
+    for item in ingredient_and_recipe:
+        ingredient_message += f'{item.ingredient.name}: {item.amount} {item.unit.name}\n'
+
     update.message.reply_text(
-        recipe.ingredient,
+        ingredient_message,
         reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True,
             resize_keyboard=True,
@@ -225,7 +236,7 @@ def run_polling():
         states={
             NEXT: [
                 MessageHandler(
-                    Filters.regex('^Покажи другой рецепт$'),
+                    Filters.regex('^Следующее блюдо$'),
                     next_menu
                 ),
                 MessageHandler(
@@ -235,6 +246,10 @@ def run_polling():
                 MessageHandler(
                     Filters.regex('^Посмотреть ингридиенты$'),
                     send_ingredients
+                ),
+                MessageHandler(
+                    Filters.regex('^Закрыть$'),
+                    cancel
                 ),
             ]
         },
