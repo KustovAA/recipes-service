@@ -133,4 +133,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+TG_TOKEN = env.str("TG_TOKEN")
+
 django_heroku.settings(locals())
