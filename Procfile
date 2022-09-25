@@ -1,1 +1,1 @@
-web: gunicorn run_polling:run_polling
+web: python run_polling.py
