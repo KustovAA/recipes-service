@@ -43,10 +43,10 @@ END = ConversationHandler.END
 
 
 def start(update: Update, context: CallbackContext) -> int:
-    reply_keyboard = [['Согласен', 'Я против']]
+    reply_keyboard = [['Согласен', 'Не соглвсен']]
 
     update.message.reply_text(
-        'Привет, мы собираем личные данные',
+        'Привет, мы собираем личные данные. Вы согласны на обработку вашей персональной информации?',
         reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True,
             resize_keyboard=True,
@@ -61,7 +61,7 @@ def agreement(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     logger.info("Agreement of %s: %s", user.first_name, update.message.text)
     update.message.reply_text(
-        'Напишите вашу Фамилию Имя',
+        'Пожалуйста, укажите ваше имя',
         reply_markup=ReplyKeyboardRemove(),
     )
 
@@ -69,31 +69,47 @@ def agreement(update: Update, context: CallbackContext) -> int:
 
 
 def name(update: Update, context: CallbackContext) -> int:
-    user = update.message.from_user
-    logger.info("Name of %s: %s", user.first_name, update.message.text)
-    update.message.reply_text(
-        'Прекрасно. Теперь напишите ваш номер телефона'
-    )
+    try:
+        user = update.message.from_user
+        if not user:
+            raise ValueError('Invalid value')
+        logger.info("Name of %s: %s", user.first_name, update.message.text)
+        update.message.reply_text(
+            'Прекрасно. Теперь напишите ваш номер телефона'
+        )
+    except ValueError:
+        print('Вы не указали ваше имя.')
 
     return PHONE_NUMBER
 
 
 def phone_number(update: Update, context: CallbackContext) -> int:
-    user = update.message.from_user
-    logger.info("Phone number of %s: %s", user.first_name, update.message.text)
-    update.message.reply_text(
-        'Отлично. И последнее, напишите ваш email'
-    )
+    try:
+        user = update.message.from_user
+        if not user:
+            raise ValueError('Invalid value')
+        logger.info("Phone number of %s: %s", user.first_name, update.message.text)
+        update.message.reply_text(
+            'Отлично. И последнее, напишите ваш email'
+        )
+    except ValueError:
+        print('Похоже, что во введённом вами номере есть ошибка.')
 
     return EMAIL
 
 
 def email(update: Update, context: CallbackContext) -> int:
-    user = update.message.from_user
-    logger.info("Email of %s: %s", user.first_name, update.message.text)
-    update.message.reply_text(
-        'Спасибо. Добро пожаловать в наше царство блюд=)) /menu'
-    )
+    try:
+        user = update.message.from_user
+        if not user:
+            raise ValueError('Invalid value')
+        logger.info("Email of %s: %s", user.first_name, update.message.text)
+        update.message.reply_text(
+            'Спасибо. Добро пожаловать в наше царство блюд! =)) /menu'
+        )
+    except ValueError:
+        print('Похоже, что во введённом вами адресе электронной почты есть ошибка.')
+
     return ConversationHandler.END
 
 
@@ -103,7 +119,7 @@ def menu(update: Update, context: CallbackContext) -> int:
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
     recipe = Recipe.objects.get(id=context.bot_data['next_id'])
     context.bot_data['next_id'] += 1
-    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
+    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингредиенты'], ['Закрыть']]
     update.message.reply_photo(
         recipe.img,
         reply_markup=ReplyKeyboardMarkup(
@@ -119,7 +135,7 @@ def menu(update: Update, context: CallbackContext) -> int:
 def next_menu(update: Update, context: CallbackContext) -> int:
     try:
         user = update.message.from_user
-        reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
+        reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингредиенты'], ['Закрыть']]
         logger.info("Reciept of %s: %s", user.first_name, update.message.text)
         recipe = Recipe.objects.get(id=context.bot_data['next_id'])
         keyboard = [
@@ -156,7 +172,7 @@ def next_menu(update: Update, context: CallbackContext) -> int:
 
 def send_recipe(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
-    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
+    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингредиенты'], ['Закрыть']]
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
     recipe = Recipe.objects.get(id=context.bot_data['next_id'])
     context.bot_data['next_id'] += 1
@@ -173,7 +189,7 @@ def send_recipe(update: Update, context: CallbackContext) -> int:
 
 def send_ingredients(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
-    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
+    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингредиенты'], ['Закрыть']]
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
     recipe = Recipe.objects.get(id=context.bot_data['next_id'])
     ingredient_and_recipe = IngredientAndRecipe.objects.filter(recipe=recipe.pk)
@@ -197,7 +213,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
     update.message.reply_text(
-        'Очень жаль, что вы не с нами=(',
+        'Очень жаль, что вы не с нами! =(',
         reply_markup=ReplyKeyboardRemove()
     )
 
@@ -217,7 +233,7 @@ def run_polling():
                     agreement
                 ),
                 MessageHandler(
-                    Filters.regex('^Я против$'),
+                    Filters.regex('^Не согласен$'),
                     cancel
                 )
             ],
@@ -244,7 +260,7 @@ def run_polling():
                     send_recipe
                 ),
                 MessageHandler(
-                    Filters.regex('^Посмотреть ингридиенты$'),
+                    Filters.regex('^Посмотреть ингредиенты$'),
                     send_ingredients
                 ),
                 MessageHandler(

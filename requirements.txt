@@ -1,18 +1,21 @@
+environs==9.5.0
+Django==4.1.1
+? psycopg2==2.9.3
+python-telegram-bot==13.14
+django-heroku==0.3.1
+
+
+
 APScheduler==3.6.3
 asgiref==3.5.2
 cachetools==4.2.2
 certifi==2022.9.24
 dj-database-url==1.0.0
-Django==4.1.1
-django-heroku==0.3.1
-environs==9.5.0
 gunicorn==20.1.0
 marshmallow==3.18.0
 packaging==21.3
-psycopg2==2.9.3
 pyparsing==3.0.9
 python-dotenv==0.21.0
-python-telegram-bot==13.14
 pytz==2022.2.1
 pytz-deprecation-shim==0.1.0.post0
 six==1.16.0
