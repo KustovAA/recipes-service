@@ -2,6 +2,7 @@ import os
 import logging
 
 import django
+from retry import retry
 
 from telegram import (
     ReplyKeyboardMarkup,
@@ -201,6 +202,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
     return END
 
 
+@retry(exceptions=Exception, delay=1, backoff=2, tries=10)
 def run_bot():
     updater = Updater(token=TG_TOKEN, use_context=True)
     dispatcher = updater.dispatcher
