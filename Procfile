@@ -1,1 +1,1 @@
-worker: python manage.py bot
+web: python manage.py bot
