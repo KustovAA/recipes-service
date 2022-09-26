@@ -1,6 +1,5 @@
 import os
 import logging
-import random
 
 import django
 
@@ -44,10 +43,10 @@ END = ConversationHandler.END
 
 
 def start(update: Update, context: CallbackContext) -> int:
-    reply_keyboard = [['Согласен', 'Не согласен']]
+    reply_keyboard = [['Согласен', 'Я против']]
 
     update.message.reply_text(
-        'Привет, мы собираем личные данные. Вы согласны на обработку вашей персональной информации?',
+        'Привет, мы собираем личные данные',
         reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True,
             resize_keyboard=True,
@@ -62,7 +61,7 @@ def agreement(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     logger.info("Agreement of %s: %s", user.first_name, update.message.text)
     update.message.reply_text(
-        'Пожалуйста, укажите ваше имя',
+        'Напишите вашу Фамилию Имя',
         reply_markup=ReplyKeyboardRemove(),
     )
 
@@ -70,91 +69,65 @@ def agreement(update: Update, context: CallbackContext) -> int:
 
 
 def name(update: Update, context: CallbackContext) -> int:
-    try:
-        user = update.message.from_user
-        if not user:
-            raise ValueError('Invalid value')
-        logger.info("Name of %s: %s", user.first_name, update.message.text)
-        update.message.reply_text(
-            'Прекрасно. Теперь напишите ваш номер телефона'
-        )
-    except ValueError:
-        print('Вы не указали ваше имя.')
+    user = update.message.from_user
+    logger.info("Name of %s: %s", user.first_name, update.message.text)
+    update.message.reply_text(
+        'Прекрасно. Теперь напишите ваш номер телефона'
+    )
 
     return PHONE_NUMBER
 
 
 def phone_number(update: Update, context: CallbackContext) -> int:
-    try:
-        user = update.message.from_user
-        if not user:
-            raise ValueError('Invalid value')
-        logger.info("Phone number of %s: %s", user.first_name, update.message.text)
-        update.message.reply_text(
-            'Отлично. И последнее, напишите ваш email'
-        )
-    except ValueError:
-        print('Похоже, что во введённом вами номере есть ошибка.')
+    user = update.message.from_user
+    logger.info("Phone number of %s: %s", user.first_name, update.message.text)
+    update.message.reply_text(
+        'Отлично. И последнее, напишите ваш email'
+    )
 
     return EMAIL
 
 
 def email(update: Update, context: CallbackContext) -> int:
-    try:
-        user = update.message.from_user
-        if not user:
-            raise ValueError('Invalid value')
-        logger.info("Email of %s: %s", user.first_name, update.message.text)
-        update.message.reply_text(
-            'Спасибо. Добро пожаловать в наше царство блюд! =)) /menu'
-        )
-    except ValueError:
-        print('Похоже, что во введённом вами адресе электронной почты есть ошибка.')
-
-    return END
+    user = update.message.from_user
+    logger.info("Email of %s: %s", user.first_name, update.message.text)
+    update.message.reply_text(
+        'Спасибо. Добро пожаловать в наше царство блюд=)) /menu'
+    )
+    return ConversationHandler.END
 
 
 def menu(update: Update, context: CallbackContext) -> int:
+    context.bot_data['next_id'] = 1
     user = update.message.from_user
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
-    reply_keyboard = [['Начать']]
-    update.message.reply_text(
-        f'Привет {user.first_name}. Давай выберем что тебе стоит приготовить.',
+    recipe = Recipe.objects.get(id=context.bot_data['next_id'])
+    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
+    update.message.reply_photo(
+        recipe.img,
         reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True,
             resize_keyboard=True,
         ),
     )
+    update.message.reply_text(recipe.name)
 
     return NEXT
 
 
 def next_menu(update: Update, context: CallbackContext) -> int:
-    count = random.randint(0, Recipe.objects.count())
-    context.bot_data['next_id'] = count
-
     try:
+        context.bot_data['next_id'] += 1
         user = update.message.from_user
-        reply_keyboard = [
-            ['Следующее блюдо'],
-            ['Показать рецепт'],
-            ['Посмотреть ингредиенты'],
-            ['Закрыть']
-        ]
+        reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
         logger.info("Reciept of %s: %s", user.first_name, update.message.text)
         recipe = Recipe.objects.get(id=context.bot_data['next_id'])
         keyboard = [
             [
-                InlineKeyboardButton(
-                    text='Нравится',
-                    callback_data=str(LIKE)
-                )
+                InlineKeyboardButton(text='Нравится', callback_data=LIKE)
             ],
             [
-                InlineKeyboardButton(
-                    text='Не нравится',
-                    callback_data=str(DISLIKE)
-                ),
+                InlineKeyboardButton(text='Не нравится', callback_data=DISLIKE),
             ]
         ]
         update.message.reply_photo(
@@ -172,22 +145,17 @@ def next_menu(update: Update, context: CallbackContext) -> int:
             )
         )
         return NEXT
-
     except Recipe.DoesNotExist:
         update.message.reply_text(
             'Блюд больше нет',
         )
+        context.bot_data['next_id'] = 1
         return ConversationHandler.END
 
 
 def send_recipe(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
-    reply_keyboard = [
-        ['Следующее блюдо'],
-        ['Показать рецепт'],
-        ['Посмотреть ингредиенты'],
-        ['Закрыть']
-    ]
+    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
     recipe = Recipe.objects.get(id=context.bot_data['next_id'])
     update.message.reply_text(
@@ -203,12 +171,7 @@ def send_recipe(update: Update, context: CallbackContext) -> int:
 
 def send_ingredients(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
-    reply_keyboard = [
-        ['Следующее блюдо'],
-        ['Показать рецепт'],
-        ['Посмотреть ингредиенты'],
-        ['Закрыть']
-    ]
+    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
     recipe = Recipe.objects.get(id=context.bot_data['next_id'])
     ingredient_and_recipe = IngredientAndRecipe.objects.filter(recipe=recipe.pk)
@@ -231,14 +194,14 @@ def cancel(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
     update.message.reply_text(
-        'Очень жаль, что вы не с нами! =(',
+        'Очень жаль, что вы не с нами=(',
         reply_markup=ReplyKeyboardRemove()
     )
 
     return END
 
 
-def run_polling():
+def run_bot():
     updater = Updater(token=TG_TOKEN, use_context=True)
     dispatcher = updater.dispatcher
 
@@ -251,7 +214,7 @@ def run_polling():
                     agreement
                 ),
                 MessageHandler(
-                    Filters.regex('^Не согласен$'),
+                    Filters.regex('^Я против$'),
                     cancel
                 )
             ],
@@ -270,7 +233,7 @@ def run_polling():
         states={
             NEXT: [
                 MessageHandler(
-                    Filters.regex('^Начать$|^Следующее блюдо$'),
+                    Filters.regex('^Следующее блюдо$'),
                     next_menu
                 ),
                 MessageHandler(
@@ -278,7 +241,7 @@ def run_polling():
                     send_recipe
                 ),
                 MessageHandler(
-                    Filters.regex('^Посмотреть ингредиенты$'),
+                    Filters.regex('^Посмотреть ингридиенты$'),
                     send_ingredients
                 ),
                 MessageHandler(
@@ -297,4 +260,4 @@ def run_polling():
 
 
 if __name__ == "__main__":
-    run_polling()
+    run_bot()
