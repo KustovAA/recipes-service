@@ -102,7 +102,6 @@ def menu(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
     recipe = Recipe.objects.get(id=context.bot_data['next_id'])
-    context.bot_data['next_id'] += 1
     reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
     update.message.reply_photo(
         recipe.img,
@@ -118,6 +117,7 @@ def menu(update: Update, context: CallbackContext) -> int:
 
 def next_menu(update: Update, context: CallbackContext) -> int:
     try:
+        context.bot_data['next_id'] += 1
         user = update.message.from_user
         reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
         logger.info("Reciept of %s: %s", user.first_name, update.message.text)
@@ -130,7 +130,6 @@ def next_menu(update: Update, context: CallbackContext) -> int:
                 InlineKeyboardButton(text='Не нравится', callback_data=DISLIKE),
             ]
         ]
-        context.bot_data['next_id'] += 1
         update.message.reply_photo(
             recipe.img,
             reply_markup=ReplyKeyboardMarkup(
@@ -159,7 +158,6 @@ def send_recipe(update: Update, context: CallbackContext) -> int:
     reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингридиенты'], ['Закрыть']]
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
     recipe = Recipe.objects.get(id=context.bot_data['next_id'])
-    context.bot_data['next_id'] += 1
     update.message.reply_text(
         recipe.description,
         reply_markup=ReplyKeyboardMarkup(
@@ -177,7 +175,6 @@ def send_ingredients(update: Update, context: CallbackContext) -> int:
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
     recipe = Recipe.objects.get(id=context.bot_data['next_id'])
     ingredient_and_recipe = IngredientAndRecipe.objects.filter(recipe=recipe.pk)
-    context.bot_data['next_id'] += 1
     ingredient_message = ''
     for item in ingredient_and_recipe:
         ingredient_message += f'{item.ingredient.name}: {item.amount} {item.unit.name}\n'
@@ -204,7 +201,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
     return END
 
 
-def run_polling():
+def run_bot():
     updater = Updater(token=TG_TOKEN, use_context=True)
     dispatcher = updater.dispatcher
 
@@ -263,4 +260,4 @@ def run_polling():
 
 
 if __name__ == "__main__":
-    run_polling()
+    run_bot()
