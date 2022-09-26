@@ -1,5 +1,6 @@
 import os
 import logging
+import random
 
 import django
 
@@ -110,43 +111,52 @@ def email(update: Update, context: CallbackContext) -> int:
     except ValueError:
         print('Похоже, что во введённом вами адресе электронной почты есть ошибка.')
 
-    return ConversationHandler.END
+    return END
 
 
 def menu(update: Update, context: CallbackContext) -> int:
-    context.bot_data['next_id'] = 1
     user = update.message.from_user
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
-    recipe = Recipe.objects.get(id=context.bot_data['next_id'])
-    context.bot_data['next_id'] += 1
-    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингредиенты'], ['Закрыть']]
-    update.message.reply_photo(
-        recipe.img,
+    reply_keyboard = [['Начать']]
+    update.message.reply_text(
+        f'Привет {user.first_name}. Давай выберем что тебе стоит приготовить.',
         reply_markup=ReplyKeyboardMarkup(
             reply_keyboard, one_time_keyboard=True,
             resize_keyboard=True,
         ),
     )
-    update.message.reply_text(recipe.name)
 
     return NEXT
 
 
 def next_menu(update: Update, context: CallbackContext) -> int:
+    count = random.randint(0, Recipe.objects.count())
+    context.bot_data['next_id'] = count
+
     try:
         user = update.message.from_user
-        reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингредиенты'], ['Закрыть']]
+        reply_keyboard = [
+            ['Следующее блюдо'],
+            ['Показать рецепт'],
+            ['Посмотреть ингредиенты'],
+            ['Закрыть']
+        ]
         logger.info("Reciept of %s: %s", user.first_name, update.message.text)
         recipe = Recipe.objects.get(id=context.bot_data['next_id'])
         keyboard = [
             [
-                InlineKeyboardButton(text='Нравится', callback_data=LIKE)
+                InlineKeyboardButton(
+                    text='Нравится',
+                    callback_data=str(LIKE)
+                )
             ],
             [
-                InlineKeyboardButton(text='Не нравится', callback_data=DISLIKE),
+                InlineKeyboardButton(
+                    text='Не нравится',
+                    callback_data=str(DISLIKE)
+                ),
             ]
         ]
-        context.bot_data['next_id'] += 1
         update.message.reply_photo(
             recipe.img,
             reply_markup=ReplyKeyboardMarkup(
@@ -162,20 +172,24 @@ def next_menu(update: Update, context: CallbackContext) -> int:
             )
         )
         return NEXT
+
     except Recipe.DoesNotExist:
         update.message.reply_text(
             'Блюд больше нет',
         )
-        context.bot_data['next_id'] = 1
         return ConversationHandler.END
 
 
 def send_recipe(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
-    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингредиенты'], ['Закрыть']]
+    reply_keyboard = [
+        ['Следующее блюдо'],
+        ['Показать рецепт'],
+        ['Посмотреть ингредиенты'],
+        ['Закрыть']
+    ]
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
     recipe = Recipe.objects.get(id=context.bot_data['next_id'])
-    context.bot_data['next_id'] += 1
     update.message.reply_text(
         recipe.description,
         reply_markup=ReplyKeyboardMarkup(
@@ -189,11 +203,15 @@ def send_recipe(update: Update, context: CallbackContext) -> int:
 
 def send_ingredients(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
-    reply_keyboard = [['Следующее блюдо'], ['Показать рецепт'], ['Посмотреть ингредиенты'], ['Закрыть']]
+    reply_keyboard = [
+        ['Следующее блюдо'],
+        ['Показать рецепт'],
+        ['Посмотреть ингредиенты'],
+        ['Закрыть']
+    ]
     logger.info("Reciept of %s: %s", user.first_name, update.message.text)
     recipe = Recipe.objects.get(id=context.bot_data['next_id'])
     ingredient_and_recipe = IngredientAndRecipe.objects.filter(recipe=recipe.pk)
-    context.bot_data['next_id'] += 1
     ingredient_message = ''
     for item in ingredient_and_recipe:
         ingredient_message += f'{item.ingredient.name}: {item.amount} {item.unit.name}\n'
@@ -252,7 +270,7 @@ def run_polling():
         states={
             NEXT: [
                 MessageHandler(
-                    Filters.regex('^Следующее блюдо$'),
+                    Filters.regex('^Начать$|^Следующее блюдо$'),
                     next_menu
                 ),
                 MessageHandler(
