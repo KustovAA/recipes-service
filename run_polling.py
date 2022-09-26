@@ -44,7 +44,7 @@ END = ConversationHandler.END
 
 
 def start(update: Update, context: CallbackContext) -> int:
-    reply_keyboard = [['Согласен', 'Не соглвсен']]
+    reply_keyboard = [['Согласен', 'Не согласен']]
 
     update.message.reply_text(
         'Привет, мы собираем личные данные. Вы согласны на обработку вашей персональной информации?',
