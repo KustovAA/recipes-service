@@ -246,9 +246,11 @@ def cancel(update: Update, context: CallbackContext) -> int:
 
 def like(update: Update, context: CallbackContext) -> int:
     telegram_id = update.effective_user.id
-    db_user = User.objects.get(telegram_id=telegram_id)
+    db_user = User.objects.get_or_create(telegram_id=telegram_id)
     recipe_id = context.bot_data['next_id']
     recipe = Recipe.objects.get(id=recipe_id)
+    db_user.dislikes.remove(recipe)
+    db_user.likes.remove(recipe)
     db_user.likes.add(recipe)
 
     return NEXT
@@ -256,9 +258,11 @@ def like(update: Update, context: CallbackContext) -> int:
 
 def dislike(update: Update, context: CallbackContext) -> int:
     telegram_id = update.effective_user.id
-    db_user = User.objects.get(telegram_id=telegram_id)
+    db_user = User.objects.get_or_create(telegram_id=telegram_id)
     recipe_id = context.bot_data['next_id']
     recipe = Recipe.objects.get(id=recipe_id)
+    db_user.dislikes.remove(recipe)
+    db_user.likes.remove(recipe)
     db_user.dislikes.add(recipe)
 
     return NEXT
