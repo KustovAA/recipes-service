@@ -26,7 +26,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'
 django.setup()
 
 from config.settings import TG_TOKEN
-from recipes.models import Recipe, IngredientAndRecipe, User
+from recipes.models import Recipe, IngredientAndRecipe, User, UserAndRecipe
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -246,24 +246,28 @@ def cancel(update: Update, context: CallbackContext) -> int:
 
 def like(update: Update, context: CallbackContext) -> int:
     telegram_id = update.effective_user.id
-    db_user = User.objects.get_or_create(telegram_id=telegram_id)
+    User.objects.get_or_create(telegram_id=telegram_id)
+    db_user = User.objects.get(telegram_id=telegram_id)
     recipe_id = context.bot_data['next_id']
     recipe = Recipe.objects.get(id=recipe_id)
-    db_user.dislikes.remove(recipe)
-    db_user.likes.remove(recipe)
-    db_user.likes.add(recipe)
+    UserAndRecipe.objects.get_or_create(user=db_user, recipe=recipe)
+    user_recipe = UserAndRecipe.objects.get(user=db_user, recipe=recipe)
+    user_recipe.like = True
+    user_recipe.save()
 
     return NEXT
 
 
 def dislike(update: Update, context: CallbackContext) -> int:
     telegram_id = update.effective_user.id
-    db_user = User.objects.get_or_create(telegram_id=telegram_id)
+    User.objects.get_or_create(telegram_id=telegram_id)
+    db_user = User.objects.get(telegram_id=telegram_id)
     recipe_id = context.bot_data['next_id']
     recipe = Recipe.objects.get(id=recipe_id)
-    db_user.dislikes.remove(recipe)
-    db_user.likes.remove(recipe)
-    db_user.dislikes.add(recipe)
+    UserAndRecipe.objects.get_or_create(user=db_user, recipe=recipe)
+    user_recipe = UserAndRecipe.objects.get(user=db_user, recipe=recipe)
+    user_recipe.like = False
+    user_recipe.save()
 
     return NEXT
 

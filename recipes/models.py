@@ -59,8 +59,12 @@ class User(models.Model):
     email = models.EmailField(null=True, verbose_name='Почта')
     telegram_id = models.CharField(max_length=200, verbose_name='телеграм id')
     password = models.CharField(max_length=200, null=True, verbose_name='Пароль')
-    likes = models.ManyToManyField(Recipe, related_name='likes', verbose_name='Понравившиеся')
-    dislikes = models.ManyToManyField(Recipe, related_name='dislikes', verbose_name='Не понравившиеся')
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+
+
+class UserAndRecipe(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, verbose_name='Рецепт блюда')
+    like = models.BooleanField(null=True)
