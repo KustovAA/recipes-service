@@ -250,10 +250,7 @@ def like(update: Update, context: CallbackContext) -> int:
     db_user = User.objects.get(telegram_id=telegram_id)
     recipe_id = context.bot_data['next_id']
     recipe = Recipe.objects.get(id=recipe_id)
-    UserAndRecipe.objects.get_or_create(user=db_user, recipe=recipe)
-    user_recipe = UserAndRecipe.objects.get(user=db_user, recipe=recipe)
-    user_recipe.like = True
-    user_recipe.save()
+    UserAndRecipe.objects.update_or_create(user_id=db_user.id, recipe_id=recipe.id, like=True)
 
     return NEXT
 
@@ -264,10 +261,7 @@ def dislike(update: Update, context: CallbackContext) -> int:
     db_user = User.objects.get(telegram_id=telegram_id)
     recipe_id = context.bot_data['next_id']
     recipe = Recipe.objects.get(id=recipe_id)
-    UserAndRecipe.objects.get_or_create(user=db_user, recipe=recipe)
-    user_recipe = UserAndRecipe.objects.get(user=db_user, recipe=recipe)
-    user_recipe.like = False
-    user_recipe.save()
+    UserAndRecipe.objects.update_or_create(user_id=db_user.id, recipe_id=recipe.id, like=True)
 
     return NEXT
 
