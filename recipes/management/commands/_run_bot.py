@@ -10,8 +10,6 @@ from telegram import (
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
     Update,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton
 )
 from telegram.ext import (
     Updater,
@@ -66,7 +64,7 @@ def agreement(update: Update, context: CallbackContext) -> int:
     telegram_id = update.effective_user.id
     first_name = update.effective_user.first_name
     last_name = update.effective_user.last_name
-    User.objects.create(telegram_id=telegram_id, first_name=first_name, last_name=last_name)
+    User.objects.update_or_create(telegram_id=telegram_id, first_name=first_name, last_name=last_name)
     update.message.reply_text(
         'Пожалуйста, укажите ваше имя',
         reply_markup=ReplyKeyboardRemove(),
