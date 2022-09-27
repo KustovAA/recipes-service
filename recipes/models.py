@@ -57,7 +57,7 @@ class User(models.Model):
     last_name = models.CharField(max_length=200, null=True, verbose_name='Фамилия')
     phone = models.CharField(max_length=200, null=True, verbose_name='Телефон')
     email = models.EmailField(null=True, verbose_name='Почта')
-    telegram_id = models.CharField(max_length=200, verbose_name='телеграм id')
+    telegram_id = models.CharField(max_length=200, verbose_name='телеграм id', unique=True)
     password = models.CharField(max_length=200, null=True, verbose_name='Пароль')
 
     def __str__(self):
