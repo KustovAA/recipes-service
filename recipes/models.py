@@ -14,17 +14,20 @@ class Ingredient(models.Model):
     def __str__(self):
         return self.name
 
+
 class Cuisine(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название')
 
     def __str__(self):
         return self.name
 
+
 class Category(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название')
 
     def __str__(self):
         return self.name
+
 
 class Recipe(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название')
@@ -37,6 +40,7 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class IngredientAndRecipe(models.Model):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, verbose_name='Ингридиент')
