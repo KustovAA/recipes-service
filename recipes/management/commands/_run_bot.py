@@ -142,6 +142,8 @@ def next_menu(update: Update, context: CallbackContext) -> int:
     try:
         user = update.message.from_user
         reply_keyboard = [
+            ['Нравится'],
+            ['Не нравится'],
             ['Следующее блюдо'],
             ['Показать рецепт'],
             ['Посмотреть ингредиенты'],
@@ -149,10 +151,6 @@ def next_menu(update: Update, context: CallbackContext) -> int:
         ]
         logger.info("Reciept of %s: %s", user.first_name, update.message.text)
         recipe = Recipe.objects.get(id=context.bot_data['next_id'])
-        keyboard = [
-            ['Нравится'],
-            ['Не нравится']
-        ]
         update.message.reply_photo(
             recipe.img,
             reply_markup=ReplyKeyboardMarkup(
@@ -160,13 +158,7 @@ def next_menu(update: Update, context: CallbackContext) -> int:
                 resize_keyboard=True,
             ),
         )
-        update.message.reply_text(
-            recipe.name,
-            reply_markup=InlineKeyboardMarkup(
-                keyboard, one_time_keyboard=True,
-                resize_keyboard=True,
-            )
-        )
+        update.message.reply_text(recipe.name)
         return NEXT
 
     except Recipe.DoesNotExist:
