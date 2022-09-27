@@ -171,6 +171,8 @@ def next_menu(update: Update, context: CallbackContext) -> int:
 def send_recipe(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     reply_keyboard = [
+        ['Нравится'],
+        ['Не нравится'],
         ['Следующее блюдо'],
         ['Показать рецепт'],
         ['Посмотреть ингредиенты'],
@@ -192,6 +194,8 @@ def send_recipe(update: Update, context: CallbackContext) -> int:
 def send_ingredients(update: Update, context: CallbackContext) -> int:
     user = update.message.from_user
     reply_keyboard = [
+        ['Нравится'],
+        ['Не нравится'],
         ['Следующее блюдо'],
         ['Показать рецепт'],
         ['Посмотреть ингредиенты'],
@@ -298,11 +302,11 @@ def run_bot():
                         cancel
                     ),
                     MessageHandler(
-                        Filters.regex(('^Нравится$')),
+                        Filters.regex('^Нравится$'),
                         like
                     ),
                     MessageHandler(
-                        Filters.regex(('^Не нравится$')),
+                        Filters.regex('^Не нравится$'),
                         dislike
                     )
                 ]
