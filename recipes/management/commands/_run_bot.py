@@ -236,6 +236,23 @@ def like(update: Update, context: CallbackContext) -> int:
     recipe = Recipe.objects.get(id=recipe_id)
     UserAndRecipe.objects.update_or_create(user_id=db_user.id, recipe_id=recipe.id, like=True)
 
+    reply_keyboard = [
+        ['Нравится'],
+        ['Не нравится'],
+        ['Следующее блюдо'],
+        ['Показать рецепт'],
+        ['Посмотреть ингредиенты'],
+        ['Закрыть']
+    ]
+    update.message.reply_photo(
+        recipe.img,
+        reply_markup=ReplyKeyboardMarkup(
+            reply_keyboard, one_time_keyboard=True,
+            resize_keyboard=True,
+        ),
+    )
+    update.message.reply_text(recipe.name)
+
     return NEXT
 
 
@@ -246,6 +263,23 @@ def dislike(update: Update, context: CallbackContext) -> int:
     recipe_id = context.bot_data['next_id']
     recipe = Recipe.objects.get(id=recipe_id)
     UserAndRecipe.objects.update_or_create(user_id=db_user.id, recipe_id=recipe.id, like=True)
+
+    reply_keyboard = [
+        ['Нравится'],
+        ['Не нравится'],
+        ['Следующее блюдо'],
+        ['Показать рецепт'],
+        ['Посмотреть ингредиенты'],
+        ['Закрыть']
+    ]
+    update.message.reply_photo(
+        recipe.img,
+        reply_markup=ReplyKeyboardMarkup(
+            reply_keyboard, one_time_keyboard=True,
+            resize_keyboard=True,
+        ),
+    )
+    update.message.reply_text(recipe.name)
 
     return NEXT
 
