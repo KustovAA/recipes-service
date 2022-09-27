@@ -150,18 +150,8 @@ def next_menu(update: Update, context: CallbackContext) -> int:
         logger.info("Reciept of %s: %s", user.first_name, update.message.text)
         recipe = Recipe.objects.get(id=context.bot_data['next_id'])
         keyboard = [
-            [
-                InlineKeyboardButton(
-                    text='Нравится',
-                    callback_data=str(LIKE)
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text='Не нравится',
-                    callback_data=str(DISLIKE)
-                ),
-            ]
+            ['Нравится'],
+            ['Не нравится']
         ]
         update.message.reply_photo(
             recipe.img,
@@ -316,11 +306,11 @@ def run_bot():
                         cancel
                     ),
                     MessageHandler(
-                        Filters.regex(('^Нравится')),
+                        Filters.regex(('^Нравится$')),
                         like
                     ),
                     MessageHandler(
-                        Filters.regex(('^Не нравится')),
+                        Filters.regex(('^Не нравится$')),
                         dislike
                     )
                 ]

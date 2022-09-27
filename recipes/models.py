@@ -68,3 +68,6 @@ class UserAndRecipe(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, verbose_name='Рецепт блюда')
     like = models.BooleanField(null=True)
+
+    def __str__(self):
+        return f'{self.user.first_name} и {self.recipe.name}'
